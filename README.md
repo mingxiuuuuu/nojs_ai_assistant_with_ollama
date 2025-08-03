@@ -69,8 +69,8 @@ A **JavaScript-free AI assistant** powered by FastAPI and Ollama, designed for s
 2. git clone the repository      
 ```bash
 # Clone and start
-git clone <your-repo>
-cd nojs-ai-assistant
+git clone https://github.com/mingxiuuuuu/nojs_ai_assistant_with_ollama.git
+cd nojs_ai_assistant_with_ollama
 ```
 
 ## 📂 Project Structure
