@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Assistant</title>
+    
+    <!-- Auto-refresh when waiting for AI response -->
+    {% if auto_refresh %}
+    <meta http-equiv="refresh" content="2">
+    {% endif %}
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f7f7f8;
+            color: #333;
+            line-height: 1.6;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .app-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 260px;
+            background-color: #171717;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #2d2d2d;
+        }
+
+        .sidebar-header {
+            padding: 16px;
+            border-bottom: 1px solid #2d2d2d;
+        }
+
+        .new-chat-form {
+            width: 100%;
+        }
+
+        .new-chat-btn {
+            width: 100%;
+            padding: 12px;
+            background-color: #2d2d2d;
+            color: white;
+            border: 1px solid #4d4d4d;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+        }
+
+        .new-chat-btn:hover {
+            background-color: #3d3d3d;
+        }
+
+        .sessions-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .session-item {
+            padding: 12px;
+            margin-bottom: 4px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .session-item:hover {
+            background-color: #2d2d2d;
+        }
+
+        .session-item.active {
+            background-color: #343541;
+        }
+
+        .session-item a {
+            color: inherit;
+            text-decoration: none;
+            display: block;
+        }
+
+        .session-meta {
+            font-size: 12px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: #ffffff;
+        }
+
+        .chat-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid #e5e5e5;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #2d2d2d;
+        }
+
+        .status-indicators {
+            display: flex;
+            gap: 12px;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 16px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-online {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .status-offline {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+        }
+
+        .status-online .status-dot {
+            background-color: #28a745;
+        }
+
+        .status-offline .status-dot {
+            background-color: #dc3545;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 24px;
+            background-color: #ffffff;
+        }
+
+        .message {
+            margin-bottom: 24px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .message-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .message.user .message-avatar {
+            background-color: #10a37f;
+            color: white;
+        }
+
+        .message.assistant .message-avatar {
+            background-color: #6366f1;
+            color: white;
+        }
+
+        .message.loading .message-avatar {
+            background-color: #f59e0b;
+            color: white;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .message-content {
+            flex: 1;
+            padding-top: 6px;
+        }
+
+        .message-text {
+            word-wrap: break-word;
+            line-height: 1.6;
+        }
+
+        .message-meta {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 8px;
+        }
+
+        .chat-input-container {
+            padding: 24px;
+            padding-bottom: 40px; /* Extra padding to avoid taskbar overlap */
+            border-top: 1px solid #e5e5e5;
+            background-color: #ffffff;
+        }
+
+        .chat-input-wrapper {
+            max-width: 768px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .chat-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .model-select {
+            min-width: 120px;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            background-color: white;
+        }
+
+        .message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 48px;
+            max-height: 120px;
+            font-family: inherit;
+        }
+
+        .message-input:focus {
+            outline: none;
+            border-color: #10a37f;
+            box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.1);
+        }
+
+        .send-btn {
+            padding: 12px 20px;
+            background-color: #10a37f;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .send-btn:hover {
+            background-color: #0d8f6f;
+        }
+
+        .send-btn:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            text-align: center;
+            color: #6b7280;
+        }
+
+        .empty-state h2 {
+            font-size: 24px;
+            margin-bottom: 8px;
+            color: #374151;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+        }
+
+        .error {
+            background-color: #fef2f2;
+            color: #dc2626;
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            border: 1px solid #fecaca;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <form action="/sessions/new" method="post" class="new-chat-form">
+                    <button type="submit" class="new-chat-btn">+ New Chat</button>
+                </form>
+            </div>
+            <div class="sessions-list">
+                {% for session in sessions %}
+                <div class="session-item {% if current_session and session.id == current_session.id %}active{% endif %}">
+                    <a href="/chat/{{ session.id }}">
+                        <div>{{ session.title }}</div>
+                        <div class="session-meta">{{ session.message_count }} messages</div>
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="chat-header">
+                <div class="chat-title">
+                    {% if current_session %}
+                        {{ current_session.title }}
+                    {% else %}
+                        AI Assistant
+                    {% endif %}
+                </div>
+                <div class="status-indicators">
+                    {% if service_status %}
+                        {% if service_status.ollama %}
+                            <div class="status-item status-online">
+                                <div class="status-dot"></div>
+                                Ollama
+                            </div>
+                        {% else %}
+                            <div class="status-item status-offline">
+                                <div class="status-dot"></div>
+                                Ollama
+                            </div>
+                        {% endif %}
+                        {% if service_status.database %}
+                            <div class="status-item status-online">
+                                <div class="status-dot"></div>
+                                Database
+                            </div>
+                        {% else %}
+                            <div class="status-item status-offline">
+                                <div class="status-dot"></div>
+                                Database
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if error %}
+            <div class="error">
+                {{ error }}
+            </div>
+            {% endif %}
+
+            <div class="chat-messages">
+                {% if messages %}
+                    {% for message in messages %}
+                    <div class="message {{ message.role }}">
+                        <div class="message-avatar">
+                            {% if message.role == 'user' %}
+                                U
+                            {% else %}
+                                AI
+                            {% endif %}
+                        </div>
+                        <div class="message-content">
+                            <div class="message-text">{{ message.content | safe }}</div>
+                            {% if message.created_at %}
+                            <div class="message-meta">
+                                {{ message.created_at }}
+                                {% if message.model %} • {{ message.model }}{% endif %}
+                                {% if message.response_time %} • {{ "%.2f"|format(message.response_time) }}s{% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                    
+                    {% if is_waiting %}
+                    <div class="message assistant loading">
+                        <div class="message-avatar">AI</div>
+                        <div class="message-content">
+                            <div class="message-text">🤔 Thinking...</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <div class="empty-state">
+                        <h2>Welcome to AI Assistant</h2>
+                        <p>Start a conversation by typing a message below.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="chat-input-container">
+                <div class="chat-input-wrapper">
+                    <form method="post" action="/chat" id="chat-form" class="chat-form">
+                        {% if current_session %}
+                        <input type="hidden" name="session_id" value="{{ current_session.id }}">
+                        {% endif %}
+                        <select name="model" class="model-select" {% if is_waiting %}disabled{% endif %}>
+                            {% for model in models %}
+                            <option value="{{ model }}" {% if model == 'llama3' %}selected{% endif %}>{{ model.title() }}</option>
+                            {% endfor %}
+                        </select>
+                        <input type="text" name="message" class="message-input" placeholder="Type your message..." required {% if is_waiting %}disabled{% endif %}>
+                        <button type="submit" class="send-btn" {% if is_waiting %}disabled{% endif %}>
+                            {% if is_waiting %}Waiting...{% else %}Send{% endif %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

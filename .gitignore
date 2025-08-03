@@ -1,0 +1,18 @@
+# Log files
+logs/*
+!logs/.gitkeep
+
+# Database files
+chat_data/*
+!chat_data/.gitkeep
+chat_history.db
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+*.pyo
+
+# Environment files
+.env
