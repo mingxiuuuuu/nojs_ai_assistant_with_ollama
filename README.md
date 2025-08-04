@@ -82,6 +82,7 @@ cd nojs_ai_assistant_with_ollama
 ├── main.py                # FastAPI application
 ├── config.py              # Configuration management
 ├── docker-compose.yml     # Container orchestration of ollama and nojs-ai
+├── deploy-acr-aci.sh      # Azure deployment script for ACR and ACI
 ├── startup.sh             # Automated setup script for deployment 
 ├── requirements.txt       # Python dependencies
 ├── chat_history.db        # Main SQLite database (ignored by git)
@@ -120,7 +121,7 @@ cd nojs_ai_assistant_with_ollama
 └── Documentation/
     ├── API.md           # API documentation
     ├── architecture_doc.md # System architecture
-    ├── deployment_doc.md   # Deployment guide
+    ├── cloud_deployment_guide.md # Cloud deployment instructions
     └── security_doc.md     # Security documentation
 ```
 
@@ -134,6 +135,9 @@ startup.sh # only this line for subsequent times
 **Access**: http://localhost:8000
 
 ![successful local deployment](images/successful_setup.png)
+
+📖 **For details on Azure Cloud deployment**, see:
+- [Cloud Deployment Guide](Documentation/cloud_deployment_guide.md) - Step-by-step deployment instructions
 
 ### 🔧 What startup.sh Does
 
