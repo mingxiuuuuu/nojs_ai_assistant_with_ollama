@@ -143,10 +143,9 @@ The deployment script performs these steps automatically:
 
 🎉 DEPLOYMENT COMPLETE using Azure Container Registry!
 ====================================================
-🔗 URL: <public url>
-🏗️  ACR: <acr>
+🔗 URL: http://nojs-ai-0804124244.westus2.azurecontainer.io:8000
+🏗️  ACR: nojsairegistry0804124244.azurecr.io
 ```
-
 ## Performance Optimization
 
 ### Slow Response Times (15-40 seconds)
